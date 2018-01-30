@@ -89,61 +89,61 @@ def main():
     if vis_flag:
         visualize_map(occupancy_map)
 
-    # first_time_idx = True
-    # for time_idx, line in enumerate(logfile):
-    #
-    #     # Read a single 'line' from the log file (can be either odometry or laser measurement)
-    #     meas_type = line[0] # L : laser scan measurement, O : odometry measurement
-    #     meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ') # convert measurement values from string to double
-    #
-    #     odometry_robot = meas_vals[0:3] # odometry reading [x, y, theta] in odometry frame
-    #     time_stamp = meas_vals[-1]
-    #
-    #     # if ((time_stamp <= 0.0) | (meas_type == "O")): # ignore pure odometry measurements for now (faster debugging) 
-    #         # continue
-    #
-    #     if (meas_type == "L"):
-    #          odometry_laser = meas_vals[3:6] # [x, y, theta] coordinates of laser in odometry frame
-    #          ranges = meas_vals[6:-1] # 180 range measurement values from single laser scan
-    #     
-    #     print "Processing time step " + str(time_idx) + " at time " + str(time_stamp) + "s"
-    #
-    #     if (first_time_idx):
-    #         u_t0 = odometry_robot
-    #         first_time_idx = False
-    #         continue
-    #
-    #     X_bar_new = np.zeros( (num_particles,4), dtype=np.float64)
-    #     u_t1 = odometry_robot
-    #     for m in range(0, num_particles):
-    #
-    #         """
-    #         MOTION MODEL
-    #         """
-    #         x_t0 = X_bar[m, 0:3]
-    #         x_t1 = motion_model.update(u_t0, u_t1, x_t0)
-    #
-    #         """
-    #         SENSOR MODEL
-    #         """
-    #         if (meas_type == "L"):
-    #             z_t = ranges
-    #             w_t = sensor_model.beam_range_finder_model(z_t, x_t1)
-    #             # w_t = 1/num_particles
-    #             X_bar_new[m,:] = np.hstack((x_t1, w_t))
-    #         else:
-    #             X_bar_new[m,:] = np.hstack((x_t1, X_bar[m,3]))
-    #     
-    #     X_bar = X_bar_new
-    #     u_t0 = u_t1
-    #
-    #     """
-    #     RESAMPLING
-    #     """
-    #     X_bar = resampler.low_variance_sampler(X_bar)
-    #
-    #     if vis_flag:
-    #         visualize_timestep(X_bar, time_idx)
-    #
+    first_time_idx = True
+    for time_idx, line in enumerate(logfile):
+
+        # Read a single 'line' from the log file (can be either odometry or laser measurement)
+        meas_type = line[0] # L : laser scan measurement, O : odometry measurement
+        meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ') # convert measurement values from string to double
+
+        odometry_robot = meas_vals[0:3] # odometry reading [x, y, theta] in odometry frame
+        time_stamp = meas_vals[-1]
+
+        # if ((time_stamp <= 0.0) | (meas_type == "O")): # ignore pure odometry measurements for now (faster debugging) 
+            # continue
+
+        if (meas_type == "L"):
+             odometry_laser = meas_vals[3:6] # [x, y, theta] coordinates of laser in odometry frame
+             ranges = meas_vals[6:-1] # 180 range measurement values from single laser scan
+
+        print "Processing time step " + str(time_idx) + " at time " + str(time_stamp) + "s"
+
+        if (first_time_idx):
+            u_t0 = odometry_robot
+            first_time_idx = False
+            continue
+
+        X_bar_new = np.zeros( (num_particles,4), dtype=np.float64)
+        u_t1 = odometry_robot
+        for m in range(0, num_particles):
+
+            """
+            MOTION MODEL
+            """
+            x_t0 = X_bar[m, 0:3]
+            x_t1 = motion_model.update(u_t0, u_t1, x_t0)
+
+            """
+            SENSOR MODEL
+            """
+            if (meas_type == "L"):
+                z_t = ranges
+                w_t = sensor_model.beam_range_finder_model(z_t, x_t1)
+                # w_t = 1/num_particles
+                X_bar_new[m,:] = np.hstack((x_t1, w_t))
+            else:
+                X_bar_new[m,:] = np.hstack((x_t1, X_bar[m,3]))
+
+        X_bar = X_bar_new
+        u_t0 = u_t1
+
+        """
+        RESAMPLING
+        """
+        X_bar = resampler.low_variance_sampler(X_bar)
+
+        if vis_flag:
+            visualize_timestep(X_bar, time_idx)
+
 if __name__=="__main__":
     main()
