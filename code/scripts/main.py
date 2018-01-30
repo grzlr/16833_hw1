@@ -47,8 +47,32 @@ def init_particles_freespace(num_particles, occupancy_map):
     # (in free space areas of the map)
 
     """
-    TODO : Add your code here
+    DONE : Add your code here
     """ 
+    # initialize [x, y, theta] positions in world_frame for all particles
+    # (randomly across the map) 
+    x0_vals = np.array([])
+    y0_vals = np.array([])
+    theta0_vals = np.array([])
+    for i in range(1,num_particles):
+        particle = False
+        while not particle:
+            # Generate Random Particle
+            y_val     = np.random.uniform ( 0     , 7000 , ( num_particles , 1) )
+            x_val     = np.random.uniform ( 3000  , 7000 , ( num_particles , 1) )
+            theta_val = np.random.uniform ( -3.14 , 3.14 , ( num_particles , 1) )
+            # Check if particle is in freespace
+            if occupancy_map[math.floor(x_val)][math.floor(y_val)] is 0:
+                particle = True
+                np.append(x0_vals,x_val)
+                np.append(y0_vals,y_val)
+                np.append(theta0_vals,theta_val)
+
+    # initialize weights for all particles
+    w0_vals = np.ones( (num_particles,1), dtype=np.float64)
+    w0_vals = w0_vals / num_particles
+
+    X_bar_init = np.hstack((x0_vals,y0_vals,theta0_vals,w0_vals))
 
     return X_bar_init
 
@@ -74,7 +98,7 @@ def main():
     occupancy_map = map_obj.get_map() 
     logfile = open(src_path_log, 'r')
 
-    motion_model = MotionModel()
+    motion_model = MotionModel(1,1,1,1)
     sensor_model = SensorModel(occupancy_map)
     resampler = Resampling()
 
